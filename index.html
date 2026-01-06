@@ -500,56 +500,39 @@
     renderAll();
   }
 
-  function buildShareText() {
-    const title = (el("listTitle").value.trim() || state.settings.listTitle || "רשימת קניות").trim();
-    const mode = el("viewMode").value;
+function buildShareText() {
+  const title = state.settings.listTitle || "רשימת קניות";
 
-    const lines = [];
-    lines.push(title);
-    lines.push("");
+  let lines = [`*${title}*`, ""];
 
-    const cats = sortedCategories();
-    for (const c of cats) {
-      const prods = productsByCategory(c.id);
-      const oneTimes = state.oneTimeProducts
-        .filter(p => p.categoryId === c.id)
-        .sort((a, b) => a.name.localeCompare(b.name, "he"));
+  sortedCategories().forEach(cat => {
+    const items = [];
 
-      const items = [];
-      const allItems = [
-        ...prods.map(p => ({ ...p, isOneTime: false })),
-        ...oneTimes.map(p => ({ ...p, isOneTime: true }))
-      ];
+    for (const productId in state.shopping) {
+      const s = state.shopping[productId];
 
-      for (const p of allItems) {
-        const s = state.shopping[p.id];
-        if (!s || !s.needed) continue;
+      if (!s.needed || s.bought) continue;
 
-        if (mode === "hideBought" && s.bought) continue;
+      const product = state.products.find(p => p.id === productId) ||
+                      state.oneTimeProducts.find(p => p.id === productId);
 
-        const qty = (typeof s.qty === "number" && !Number.isNaN(s.qty)) ? s.qty : 1;
-        const note = (s.note || "").trim();
-        const boughtMark = s.bought ? " ✓" : "";
-        const qtyPart = qty > 0 ? ` - ${qty}` : "";
-        const notePart = note ? ` (${note})` : "";
-        const oneTimeMark = p.isOneTime ? " [חד פעמי]" : "";
+      if (!product || product.categoryId !== cat.id) continue;
 
-        items.push(`- ${p.name}${oneTimeMark}${qtyPart}${notePart}${boughtMark}`);
-      }
+      const qty = s.qty || 1;
+      const notePart = s.note ? ` (${s.note})` : "";
 
-      if (items.length) {
-        lines.push(`*${c.name}*`);
-        lines.push(...items);
-        lines.push("");
-      }
+      items.push(`• ${qty} ${product.name}${notePart}`);
     }
 
-    const finalText = lines.join("\n").trim();
-    if (finalText === title) {
-      return title + "\n\n(לא סומנו מוצרים)";
+    if (items.length) {
+      lines.push(`*${cat.name}*`);
+      lines.push(...items);
+      lines.push("");
     }
-    return finalText;
-  }
+  });
+
+  return lines.join("\n");
+}
 
   function openWhatsApp(text) {
     const encoded = encodeURIComponent(text);
@@ -954,3 +937,4 @@
 </script>
 </body>
 </html>
+
