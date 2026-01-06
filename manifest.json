@@ -1,6 +1,7 @@
 {
-  "name": "רשימת קניות",
-  "short_name": "קניות",
+ "name": "האפליקציה של שימרית - רשימת קניות",
+"short_name": "קל בקניות",
+
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f3f4f6",
@@ -13,3 +14,4 @@
     }
   ]
 }
+
