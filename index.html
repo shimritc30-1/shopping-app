@@ -106,13 +106,13 @@
         </div>
       </div>
 
-      <div class="btnbar">
-        <button class="primary" id="btnWhatsApp">שלח לווצאפ</button>
-        <button id="btnCopy">העתק טקסט</button>
-        <button class="danger" id="btnReset">אפס רשימת קניות</button>
-      </div>
-      <div class="hint" id="shareHint"></div>
-    </div>
+     <div class="btnbar">
+  <button class="primary" id="btnWhatsApp">שלח לווצאפ</button>
+  <button id="btnCopy">העתק טקסט</button>
+  <button id="btnUpdate">עדכן אפליקציה</button>
+  <button class="danger" id="btnReset">אפס רשימת קניות</button>
+</div>
+
 
     <div class="card">
       <div class="row">
@@ -932,11 +932,42 @@ function buildShareText() {
 
   renderAll();
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
-  }
+ if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").then((reg) => {
+    // כפתור עדכון ידני
+    const btnUpdate = el("btnUpdate");
+    if (btnUpdate) {
+      btnUpdate.addEventListener("click", async () => {
+        try {
+          await reg.update(); // בדיקה למשיכת גרסה חדשה
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          }
+          // רענון כדי להיכנס לגרסה החדשה
+          location.reload();
+        } catch {
+          alert("לא הצלחתי לעדכן כרגע. נסי שוב בעוד רגע.");
+        }
+      });
+    }
+
+    // אם יש worker חדש שממתין - נעדכן מיד
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          // יש עדכון מוכן
+          el("shareHint").textContent = "יש עדכון לאפליקציה. לחצי על 'עדכן אפליקציה'.";
+        }
+      });
+    });
+  }).catch(() => {});
+}
+
 </script>
 </body>
 </html>
+
 
 
