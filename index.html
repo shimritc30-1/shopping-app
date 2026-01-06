@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="manifest" href="manifest.json" />
+  <title>רשימת קניות</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body { margin: 0; background: #f3f4f6; color: #111827; }
+    header { background: #111827; color: white; padding: 14px 16px; }
+    header h1 { margin: 0; font-size: 18px; }
+    header .sub { opacity: 0.8; font-size: 12px; margin-top: 2px; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 12px; }
+    .tabs { display: flex; gap: 8px; margin: 10px 0 12px; flex-wrap: wrap; }
+    .tabbtn {
+      border: 1px solid #d1d5db; background: white; padding: 10px 12px;
+      border-radius: 12px; cursor: pointer; font-weight: 700;
+    }
+    .tabbtn.active { background: #111827; color: white; border-color: #111827; }
+
+    .card {
+      background: white; border: 1px solid #e5e7eb; border-radius: 16px;
+      padding: 12px; box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      margin-bottom: 12px;
+    }
+
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .row > * { flex: 1; min-width: 160px; }
+    label { font-size: 12px; color: #374151; font-weight: 700; display: block; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 10px; border-radius: 12px;
+      border: 1px solid #d1d5db; background: white; font-size: 14px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .btnbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    button {
+      border: 1px solid #d1d5db; background: white; padding: 10px 12px;
+      border-radius: 12px; cursor: pointer; font-weight: 800;
+    }
+    button.primary { background: #111827; color: white; border-color: #111827; }
+    button.danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+    button.ghost { background: #f9fafb; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .categoryHeader {
+      display: flex; align-items: center; gap: 8px; justify-content: space-between;
+      padding: 10px 12px; background: #f9fafb; border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+    .categoryTitle { font-weight: 900; }
+    .muted { color: #6b7280; font-size: 12px; }
+
+    .items { margin-top: 10px; display: grid; gap: 8px; }
+    .item {
+      border: 1px solid #e5e7eb; border-radius: 14px; padding: 10px;
+      display: grid; gap: 8px;
+    }
+    .itemTop { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .itemName { font-weight: 900; flex: 1; min-width: 160px; }
+    .pill { font-size: 12px; padding: 4px 8px; border: 1px solid #e5e7eb; border-radius: 999px; background: #f9fafb; }
+    .mini { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .mini input[type="checkbox"] { width: 20px; height: 20px; }
+    .qtyWrap { display: flex; gap: 6px; align-items: center; }
+    .qtyWrap input { width: 90px; }
+    .qtyWrap button { padding: 10px 12px; }
+    .bought { opacity: 0.6; text-decoration: line-through; }
+
+    .hr { height: 1px; background: #e5e7eb; margin: 10px 0; }
+    .hint { font-size: 12px; color: #374151; line-height: 1.4; }
+    .smallActions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .fileRow { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .fileRow input[type="file"] { padding: 8px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>רשימת קניות</h1>
+  <div class="sub">פשוטה, בעברית, עם קטגוריות, ושיתוף לווצאפ</div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tabbtn active" id="tabShopping">רשימת קניות</button>
+    <button class="tabbtn" id="tabCatalog">קטלוג מוצרים</button>
+    <button class="tabbtn" id="tabBackup">גיבוי ושחזור</button>
+  </div>
+
+  <section id="viewShopping">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>כותרת שתופיע בהודעת הווצאפ</label>
+          <input id="listTitle" placeholder="למשל: קניות לסופר" />
+        </div>
+        <div>
+          <label>תצוגה</label>
+          <select id="viewMode">
+            <option value="all">הצג הכל (כולל נקנה)</option>
+            <option value="hideBought">הסתר נקנה</option>
+            <option value="onlyNeeded">רק מה שסימנתי שצריך</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btnbar">
+        <button class="primary" id="btnWhatsApp">שלח לווצאפ</button>
+        <button id="btnCopy">העתק טקסט</button>
+        <button class="danger" id="btnReset">אפס רשימת קניות</button>
+      </div>
+      <div class="hint" id="shareHint"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>מוצר חד פעמי (לא נשמר בקטלוג)</label>
+          <input id="oneTimeName" placeholder="למשל: ניילון נצמד / Batteries AA" />
+        </div>
+        <div>
+          <label>קטגוריה</label>
+          <select id="oneTimeCategory"></select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>כמות</label>
+          <input id="oneTimeQty" type="number" inputmode="numeric" min="0" value="1" />
+        </div>
+        <div>
+          <label>הערה</label>
+          <input id="oneTimeNote" placeholder="למשל: מותג X / גדול" />
+        </div>
+        <div style="max-width:240px;">
+          <label>&nbsp;</label>
+          <button class="primary" id="btnAddOneTime">הוסף לרשימה</button>
+        </div>
+      </div>
+
+      <div class="hint">המוצר יופיע ברשימה ובווצאפ, אבל לא יתווסף לקטלוג.</div>
+    </div>
+
+    <div id="shoppingContent"></div>
+  </section>
+
+  <section id="viewCatalog" style="display:none;">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>שם קטגוריה חדשה</label>
+          <input id="newCategoryName" placeholder="למשל: ירקות" />
+        </div>
+        <div style="max-width:240px;">
+          <label>&nbsp;</label>
+          <button class="primary" id="btnAddCategory">הוסף קטגוריה</button>
+        </div>
+      </div>
+      <div class="hint">סדר הקטגוריות קובע את סדר ההצגה ברשימת הקניות. משתמשים במעלה/מטה כדי לשנות סדר.</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>שם מוצר חדש (עברית או אנגלית)</label>
+          <input id="newProductName" placeholder="למשל: Milk / חלב" />
+        </div>
+        <div>
+          <label>קטגוריה</label>
+          <select id="newProductCategory"></select>
+        </div>
+        <div style="max-width:240px;">
+          <label>&nbsp;</label>
+          <button class="primary" id="btnAddProduct">הוסף מוצר</button>
+        </div>
+      </div>
+      <div class="hint">אפשר לכתוב גם באנגלית - זה יעבוד מצוין בווצאפ.</div>
+    </div>
+
+    <div id="catalogContent"></div>
+  </section>
+
+  <section id="viewBackup" style="display:none;">
+    <div class="card">
+      <div class="hint">
+        גיבוי מומלץ לפני החלפת טלפון. הגיבוי כולל קטגוריות, מוצרים, הסטטוס של הרשימה, וגם מוצרים חד פעמיים.
+      </div>
+      <div class="btnbar">
+        <button class="primary" id="btnExport">הורד גיבוי לקובץ</button>
+        <button id="btnCopyBackup">העתק גיבוי לטקסט</button>
+      </div>
+      <div class="hr"></div>
+      <div class="fileRow">
+        <div style="flex:1; min-width: 240px;">
+          <label>שחזור מגיבוי (קובץ JSON)</label>
+          <input type="file" id="importFile" accept="application/json" />
+        </div>
+        <div style="max-width:240px;">
+          <label>&nbsp;</label>
+          <button class="danger" id="btnImport">שחזר מהקובץ</button>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <label>גיבוי בטקסט (הדבקה ושחזור)</label>
+      <textarea id="backupText" placeholder="כאן יופיע JSON. אפשר להעתיק, לשמור בוואטסאפ/מייל, ולהדביק פה להחזרה."></textarea>
+      <div class="btnbar">
+        <button id="btnRestoreFromText">שחזר מהטקסט</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const STORAGE_KEY = "shopping_app_v1";
+
+  const DEFAULT_CATEGORIES = [
+    "מוצרי חלב",
+    "מוצרי ניקיון",
+    "כללי",
+    "חד פעמי",
+    "שתיה",
+    "מתוקים וחטיפים",
+    "ארטיקים",
+    "קפואים"
+  ];
+
+  function uid() {
+    return Math.random().toString(16).slice(2) + Date.now().toString(16);
+  }
+
+  function buildDefaultState() {
+    const categories = DEFAULT_CATEGORIES.map((name, idx) => ({
+      id: uid(),
+      name,
+      order: idx + 1
+    }));
+    return {
+      categories,
+      products: [],
+      oneTimeProducts: [],
+      shopping: {},
+      settings: { listTitle: "קניות לסופר" }
+    };
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return buildDefaultState();
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed.categories || !Array.isArray(parsed.categories)) return buildDefaultState();
+      if (!parsed.products || !Array.isArray(parsed.products)) return buildDefaultState();
+      if (!parsed.shopping || typeof parsed.shopping !== "object") parsed.shopping = {};
+      if (!parsed.settings || typeof parsed.settings !== "object") parsed.settings = {};
+      if (typeof parsed.settings.listTitle !== "string") parsed.settings.listTitle = "קניות לסופר";
+      if (!parsed.oneTimeProducts || !Array.isArray(parsed.oneTimeProducts)) parsed.oneTimeProducts = [];
+      return parsed;
+    } catch {
+      return buildDefaultState();
+    }
+  }
+
+  let state = loadState();
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  const el = (id) => document.getElementById(id);
+
+  function setActiveTab(tabName) {
+    const tabs = [
+      { btn: el("tabShopping"), view: el("viewShopping"), name: "shopping" },
+      { btn: el("tabCatalog"), view: el("viewCatalog"), name: "catalog" },
+      { btn: el("tabBackup"), view: el("viewBackup"), name: "backup" }
+    ];
+    tabs.forEach(t => {
+      const active = t.name === tabName;
+      t.btn.classList.toggle("active", active);
+      t.view.style.display = active ? "" : "none";
+    });
+  }
+
+  el("tabShopping").addEventListener("click", () => setActiveTab("shopping"));
+  el("tabCatalog").addEventListener("click", () => setActiveTab("catalog"));
+  el("tabBackup").addEventListener("click", () => setActiveTab("backup"));
+
+  function sortedCategories() {
+    return [...state.categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+
+  function getCategoryById(id) {
+    return state.categories.find(c => c.id === id);
+  }
+
+  function updateCategoryDropdown() {
+    const sel = el("newProductCategory");
+    sel.innerHTML = "";
+    sortedCategories().forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function updateOneTimeCategoryDropdown() {
+    const sel = el("oneTimeCategory");
+    if (!sel) return;
+    sel.innerHTML = "";
+    sortedCategories().forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  el("btnAddCategory").addEventListener("click", () => {
+    const name = el("newCategoryName").value.trim();
+    if (!name) return alert("נא להזין שם קטגוריה.");
+    const maxOrder = Math.max(0, ...state.categories.map(c => c.order || 0));
+    state.categories.push({ id: uid(), name, order: maxOrder + 1 });
+    el("newCategoryName").value = "";
+    saveState();
+    renderAll();
+  });
+
+  function moveCategory(catId, dir) {
+    const cats = sortedCategories();
+    const idx = cats.findIndex(c => c.id === catId);
+    const swapWith = idx + dir;
+    if (idx < 0 || swapWith < 0 || swapWith >= cats.length) return;
+
+    const a = cats[idx];
+    const b = cats[swapWith];
+    const tmp = a.order;
+    a.order = b.order;
+    b.order = tmp;
+
+    state.categories = state.categories.map(c => {
+      if (c.id === a.id) return a;
+      if (c.id === b.id) return b;
+      return c;
+    });
+
+    saveState();
+    renderAll();
+  }
+
+  function renameCategory(catId) {
+    const cat = getCategoryById(catId);
+    if (!cat) return;
+    const name = prompt("שם חדש לקטגוריה:", cat.name);
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) return alert("שם קטגוריה לא יכול להיות ריק.");
+    cat.name = trimmed;
+    saveState();
+    renderAll();
+  }
+
+  function deleteCategory(catId) {
+    const cat = getCategoryById(catId);
+    if (!cat) return;
+    const productsInCat = state.products.filter(p => p.categoryId === catId);
+    const oneTimesInCat = state.oneTimeProducts.filter(p => p.categoryId === catId);
+    const total = productsInCat.length + oneTimesInCat.length;
+
+    const msg = total
+      ? `בקטגוריה הזו יש ${total} פריטים (כולל חד פעמיים). למחוק?`
+      : "למחוק את הקטגוריה?";
+
+    if (!confirm(msg)) return;
+
+    const prodIds = new Set(productsInCat.map(p => p.id));
+    const oneTimeIds = new Set(oneTimesInCat.map(p => p.id));
+
+    state.products = state.products.filter(p => p.categoryId !== catId);
+    state.oneTimeProducts = state.oneTimeProducts.filter(p => p.categoryId !== catId);
+
+    for (const pid of prodIds) delete state.shopping[pid];
+    for (const oid of oneTimeIds) delete state.shopping[oid];
+
+    state.categories = state.categories.filter(c => c.id !== catId);
+    saveState();
+    renderAll();
+  }
+
+  function productsByCategory(catId) {
+    return state.products
+      .filter(p => p.categoryId === catId)
+      .sort((a, b) => a.name.localeCompare(b.name, "he"));
+  }
+
+  el("btnAddProduct").addEventListener("click", () => {
+    const name = el("newProductName").value.trim();
+    const categoryId = el("newProductCategory").value;
+    if (!name) return alert("נא להזין שם מוצר.");
+    if (!categoryId) return alert("נא לבחור קטגוריה.");
+    state.products.push({ id: uid(), name, categoryId });
+    el("newProductName").value = "";
+    saveState();
+    renderAll();
+  });
+
+  function renameProduct(prodId) {
+    const p = state.products.find(x => x.id === prodId);
+    if (!p) return;
+    const name = prompt("שם חדש למוצר:", p.name);
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) return alert("שם מוצר לא יכול להיות ריק.");
+    p.name = trimmed;
+    saveState();
+    renderAll();
+  }
+
+  function moveProductCategory(prodId) {
+    const p = state.products.find(x => x.id === prodId);
+    if (!p) return;
+    const options = sortedCategories().map(c => `${c.name}`).join("\n");
+    const newName = prompt("לאיזה קטגוריה להעביר? כתבי בדיוק את השם מהרשימה:\n\n" + options, getCategoryById(p.categoryId)?.name || "");
+    if (newName === null) return;
+    const match = state.categories.find(c => c.name === newName.trim());
+    if (!match) return alert("לא נמצאה קטגוריה בשם הזה. נסי שוב.");
+    p.categoryId = match.id;
+    saveState();
+    renderAll();
+  }
+
+  function deleteProduct(prodId) {
+    const p = state.products.find(x => x.id === prodId);
+    if (!p) return;
+    if (!confirm(`למחוק את המוצר: ${p.name}?`)) return;
+    state.products = state.products.filter(x => x.id !== prodId);
+    delete state.shopping[prodId];
+    saveState();
+    renderAll();
+  }
+
+  function getShopItem(prodId) {
+    if (!state.shopping[prodId]) {
+      state.shopping[prodId] = { needed: false, qty: 1, note: "", bought: false };
+    }
+    return state.shopping[prodId];
+  }
+
+  function resetShoppingList() {
+    if (!confirm("לאפס את הרשימה? זה ינקה את הסימונים, הכמויות וההערות, וגם ימחק מוצרים חד פעמיים.")) return;
+    state.shopping = {};
+    state.oneTimeProducts = [];
+    saveState();
+    renderAll();
+  }
+
+  el("btnReset").addEventListener("click", resetShoppingList);
+
+  function addOneTimeProduct() {
+    const name = el("oneTimeName").value.trim();
+    const categoryId = el("oneTimeCategory").value;
+    const qty = Number(el("oneTimeQty").value);
+    const note = el("oneTimeNote").value || "";
+
+    if (!name) return alert("נא להזין שם מוצר חד פעמי.");
+    if (!categoryId) return alert("נא לבחור קטגוריה.");
+
+    const id = uid();
+    state.oneTimeProducts.push({ id, name, categoryId });
+
+    state.shopping[id] = {
+      needed: true,
+      qty: Number.isFinite(qty) ? qty : 1,
+      note: note,
+      bought: false
+    };
+
+    el("oneTimeName").value = "";
+    el("oneTimeQty").value = "1";
+    el("oneTimeNote").value = "";
+
+    saveState();
+    renderAll();
+  }
+
+  el("btnAddOneTime").addEventListener("click", addOneTimeProduct);
+
+  function deleteOneTimeProduct(oneTimeId) {
+    const p = state.oneTimeProducts.find(x => x.id === oneTimeId);
+    if (!p) return;
+    if (!confirm(`למחוק מוצר חד פעמי: ${p.name}?`)) return;
+
+    state.oneTimeProducts = state.oneTimeProducts.filter(x => x.id !== oneTimeId);
+    delete state.shopping[oneTimeId];
+
+    saveState();
+    renderAll();
+  }
+
+  function buildShareText() {
+    const title = (el("listTitle").value.trim() || state.settings.listTitle || "רשימת קניות").trim();
+    const mode = el("viewMode").value;
+
+    const lines = [];
+    lines.push(title);
+    lines.push("");
+
+    const cats = sortedCategories();
+    for (const c of cats) {
+      const prods = productsByCategory(c.id);
+      const oneTimes = state.oneTimeProducts
+        .filter(p => p.categoryId === c.id)
+        .sort((a, b) => a.name.localeCompare(b.name, "he"));
+
+      const items = [];
+      const allItems = [
+        ...prods.map(p => ({ ...p, isOneTime: false })),
+        ...oneTimes.map(p => ({ ...p, isOneTime: true }))
+      ];
+
+      for (const p of allItems) {
+        const s = state.shopping[p.id];
+        if (!s || !s.needed) continue;
+
+        if (mode === "hideBought" && s.bought) continue;
+
+        const qty = (typeof s.qty === "number" && !Number.isNaN(s.qty)) ? s.qty : 1;
+        const note = (s.note || "").trim();
+        const boughtMark = s.bought ? " ✓" : "";
+        const qtyPart = qty > 0 ? ` - ${qty}` : "";
+        const notePart = note ? ` (${note})` : "";
+        const oneTimeMark = p.isOneTime ? " [חד פעמי]" : "";
+
+        items.push(`- ${p.name}${oneTimeMark}${qtyPart}${notePart}${boughtMark}`);
+      }
+
+      if (items.length) {
+        lines.push(`*${c.name}*`);
+        lines.push(...items);
+        lines.push("");
+      }
+    }
+
+    const finalText = lines.join("\n").trim();
+    if (finalText === title) {
+      return title + "\n\n(לא סומנו מוצרים)";
+    }
+    return finalText;
+  }
+
+  function openWhatsApp(text) {
+    const encoded = encodeURIComponent(text);
+    const url = `https://wa.me/?text=${encoded}`;
+    window.open(url, "_blank");
+  }
+
+  el("btnWhatsApp").addEventListener("click", () => {
+    const text = buildShareText();
+    openWhatsApp(text);
+    el("shareHint").textContent = "נפתח חלון שיתוף לווצאפ. אם לא נפתח - השתמשי בכפתור 'העתק טקסט' והדביקי בווצאפ.";
+  });
+
+  el("btnCopy").addEventListener("click", async () => {
+    const text = buildShareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      el("shareHint").textContent = "הטקסט הועתק. אפשר להדביק בווצאפ.";
+    } catch {
+      el("shareHint").textContent = "לא הצלחתי להעתיק אוטומטית. מופיע חלון עם הטקסט - העתיקי ידנית.";
+      alert(text);
+    }
+  });
+
+  function download(filename, content) {
+    const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  el("btnExport").addEventListener("click", () => {
+    const payload = JSON.stringify(state, null, 2);
+    const stamp = new Date().toISOString().slice(0, 10);
+    download(`shopping-backup-${stamp}.json`, payload);
+    el("backupText").value = payload;
+  });
+
+  el("btnCopyBackup").addEventListener("click", async () => {
+    const payload = JSON.stringify(state);
+    el("backupText").value = payload;
+    try {
+      await navigator.clipboard.writeText(payload);
+      alert("גיבוי הועתק ללוח.");
+    } catch {
+      alert("לא הצלחתי להעתיק אוטומטית. אפשר להעתיק ידנית מהשדה.");
+    }
+  });
+
+  el("btnImport").addEventListener("click", async () => {
+    const file = el("importFile").files?.[0];
+    if (!file) return alert("נא לבחור קובץ גיבוי.");
+    if (!confirm("שחזור יחליף את כל הנתונים הנוכחיים. להמשיך?")) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      state = parsed;
+      if (!state.oneTimeProducts || !Array.isArray(state.oneTimeProducts)) state.oneTimeProducts = [];
+      saveState();
+      renderAll();
+      alert("שחזור הושלם.");
+    } catch {
+      alert("קובץ לא תקין או שגיאה בקריאה.");
+    }
+  });
+
+  el("btnRestoreFromText").addEventListener("click", () => {
+    const raw = el("backupText").value.trim();
+    if (!raw) return alert("נא להדביק טקסט גיבוי.");
+    if (!confirm("שחזור יחליף את כל הנתונים הנוכחיים. להמשיך?")) return;
+    try {
+      const parsed = JSON.parse(raw);
+      state = parsed;
+      if (!state.oneTimeProducts || !Array.isArray(state.oneTimeProducts)) state.oneTimeProducts = [];
+      saveState();
+      renderAll();
+      alert("שחזור הושלם.");
+    } catch {
+      alert("טקסט לא תקין (JSON).");
+    }
+  });
+
+  function renderShopping() {
+    updateOneTimeCategoryDropdown();
+
+    el("listTitle").value = state.settings.listTitle || "קניות לסופר";
+
+    el("listTitle").addEventListener("input", () => {
+      state.settings.listTitle = el("listTitle").value;
+      saveState();
+    });
+
+    const container = el("shoppingContent");
+    container.innerHTML = "";
+
+    const cats = sortedCategories();
+    if (!cats.length) {
+      container.innerHTML = `<div class="card">אין קטגוריות. הוסיפי קטגוריות בקטלוג.</div>`;
+      return;
+    }
+
+    for (const c of cats) {
+      const prods = productsByCategory(c.id);
+      const oneTimes = state.oneTimeProducts
+        .filter(p => p.categoryId === c.id)
+        .sort((a, b) => a.name.localeCompare(b.name, "he"));
+
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const header = document.createElement("div");
+      header.className = "categoryHeader";
+      header.innerHTML = `
+        <div class="categoryTitle">${escapeHtml(c.name)}</div>
+        <div class="muted">${prods.length + oneTimes.length} מוצרים</div>
+      `;
+      card.appendChild(header);
+
+      const items = document.createElement("div");
+      items.className = "items";
+
+      const allItems = [
+        ...prods.map(p => ({ ...p, isOneTime: false })),
+        ...oneTimes.map(p => ({ ...p, isOneTime: true }))
+      ];
+
+      for (const p of allItems) {
+        const s = state.shopping[p.id];
+        const mode = el("viewMode").value;
+
+        const isNeeded = !!(s && s.needed);
+        const isBought = !!(s && s.bought);
+
+        if (mode === "onlyNeeded" && !isNeeded) continue;
+        if (mode === "hideBought" && isBought && isNeeded) continue;
+
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const shop = getShopItem(p.id);
+
+        const top = document.createElement("div");
+        top.className = "itemTop";
+
+        const name = document.createElement("div");
+        name.className = "itemName" + (shop.bought ? " bought" : "");
+        name.textContent = p.name + (p.isOneTime ? " (חד פעמי)" : "");
+
+        const neededWrap = document.createElement("div");
+        neededWrap.className = "mini";
+        const needed = document.createElement("input");
+        needed.type = "checkbox";
+        needed.checked = !!shop.needed;
+        needed.addEventListener("change", () => {
+          shop.needed = needed.checked;
+          saveState();
+          renderShopping();
+        });
+        const neededLbl = document.createElement("span");
+        neededLbl.className = "pill";
+        neededLbl.textContent = "צריך";
+        neededWrap.appendChild(needed);
+        neededWrap.appendChild(neededLbl);
+
+        const boughtWrap = document.createElement("div");
+        boughtWrap.className = "mini";
+        const bought = document.createElement("input");
+        bought.type = "checkbox";
+        bought.checked = !!shop.bought;
+        bought.disabled = !shop.needed;
+        bought.addEventListener("change", () => {
+          shop.bought = bought.checked;
+          saveState();
+          renderShopping();
+        });
+        const boughtLbl = document.createElement("span");
+        boughtLbl.className = "pill";
+        boughtLbl.textContent = "נקנה";
+        boughtWrap.appendChild(bought);
+        boughtWrap.appendChild(boughtLbl);
+
+        top.appendChild(name);
+        top.appendChild(neededWrap);
+        top.appendChild(boughtWrap);
+
+        if (p.isOneTime) {
+          const del = document.createElement("button");
+          del.className = "danger";
+          del.textContent = "מחק";
+          del.addEventListener("click", () => deleteOneTimeProduct(p.id));
+          top.appendChild(del);
+        }
+
+        const bottom = document.createElement("div");
+        bottom.className = "row";
+
+        const qtyBox = document.createElement("div");
+        qtyBox.innerHTML = `<label>כמות</label>`;
+        const qtyWrap = document.createElement("div");
+        qtyWrap.className = "qtyWrap";
+        const btnMinus = document.createElement("button");
+        btnMinus.className = "ghost";
+        btnMinus.textContent = "-";
+        btnMinus.disabled = !shop.needed;
+        btnMinus.addEventListener("click", () => {
+          shop.qty = Math.max(0, (Number(shop.qty) || 0) - 1);
+          saveState();
+          renderShopping();
+        });
+
+        const qty = document.createElement("input");
+        qty.type = "number";
+        qty.inputMode = "numeric";
+        qty.min = "0";
+        qty.value = String(Number(shop.qty) || 0);
+        qty.disabled = !shop.needed;
+        qty.addEventListener("input", () => {
+          const v = Number(qty.value);
+          shop.qty = Number.isFinite(v) ? v : 0;
+          saveState();
+        });
+
+        const btnPlus = document.createElement("button");
+        btnPlus.className = "ghost";
+        btnPlus.textContent = "+";
+        btnPlus.disabled = !shop.needed;
+        btnPlus.addEventListener("click", () => {
+          shop.qty = (Number(shop.qty) || 0) + 1;
+          saveState();
+          renderShopping();
+        });
+
+        qtyWrap.appendChild(btnMinus);
+        qtyWrap.appendChild(qty);
+        qtyWrap.appendChild(btnPlus);
+        qtyBox.appendChild(qtyWrap);
+
+        const noteBox = document.createElement("div");
+        noteBox.innerHTML = `<label>הערה</label>`;
+        const note = document.createElement("input");
+        note.placeholder = "למשל: ללא סוכר / גדול / מותג מסוים";
+        note.value = shop.note || "";
+        note.disabled = !shop.needed;
+        note.addEventListener("input", () => {
+          shop.note = note.value;
+          saveState();
+        });
+        noteBox.appendChild(note);
+
+        bottom.appendChild(qtyBox);
+        bottom.appendChild(noteBox);
+
+        item.appendChild(top);
+        item.appendChild(bottom);
+        items.appendChild(item);
+      }
+
+      if (!items.children.length) {
+        const empty = document.createElement("div");
+        empty.className = "hint";
+        empty.textContent = "אין מוצרים להצגה בקטגוריה הזו (במצב התצוגה הנוכחי).";
+        card.appendChild(empty);
+      } else {
+        card.appendChild(items);
+      }
+
+      container.appendChild(card);
+    }
+  }
+
+  function renderCatalog() {
+    updateCategoryDropdown();
+    updateOneTimeCategoryDropdown();
+
+    const container = el("catalogContent");
+    container.innerHTML = "";
+
+    const cats = sortedCategories();
+    for (const c of cats) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const head = document.createElement("div");
+      head.className = "categoryHeader";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<div class="categoryTitle">${escapeHtml(c.name)}</div><div class="muted">סדר: ${c.order}</div>`;
+
+      const actions = document.createElement("div");
+      actions.className = "smallActions";
+
+      const up = document.createElement("button");
+      up.textContent = "מעלה";
+      up.addEventListener("click", () => moveCategory(c.id, -1));
+
+      const down = document.createElement("button");
+      down.textContent = "מטה";
+      down.addEventListener("click", () => moveCategory(c.id, +1));
+
+      const rename = document.createElement("button");
+      rename.textContent = "ערוך שם";
+      rename.addEventListener("click", () => renameCategory(c.id));
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "מחק";
+      del.addEventListener("click", () => deleteCategory(c.id));
+
+      actions.appendChild(up);
+      actions.appendChild(down);
+      actions.appendChild(rename);
+      actions.appendChild(del);
+
+      head.appendChild(left);
+      head.appendChild(actions);
+      card.appendChild(head);
+
+      const prods = productsByCategory(c.id);
+      const items = document.createElement("div");
+      items.className = "items";
+
+      for (const p of prods) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const top = document.createElement("div");
+        top.className = "itemTop";
+
+        const name = document.createElement("div");
+        name.className = "itemName";
+        name.textContent = p.name;
+
+        const acts = document.createElement("div");
+        acts.className = "smallActions";
+
+        const btnRename = document.createElement("button");
+        btnRename.textContent = "ערוך";
+        btnRename.addEventListener("click", () => renameProduct(p.id));
+
+        const btnMove = document.createElement("button");
+        btnMove.textContent = "העבר קטגוריה";
+        btnMove.addEventListener("click", () => moveProductCategory(p.id));
+
+        const btnDel = document.createElement("button");
+        btnDel.className = "danger";
+        btnDel.textContent = "מחק";
+        btnDel.addEventListener("click", () => deleteProduct(p.id));
+
+        acts.appendChild(btnRename);
+        acts.appendChild(btnMove);
+        acts.appendChild(btnDel);
+
+        top.appendChild(name);
+        top.appendChild(acts);
+
+        item.appendChild(top);
+        items.appendChild(item);
+      }
+
+      if (!items.children.length) {
+        const empty = document.createElement("div");
+        empty.className = "hint";
+        empty.textContent = "אין מוצרים בקטגוריה הזו עדיין.";
+        card.appendChild(empty);
+      } else {
+        card.appendChild(items);
+      }
+
+      container.appendChild(card);
+    }
+  }
+
+  function renderBackup() {
+    el("backupText").value = "";
+  }
+
+  function renderAll() {
+    renderShopping();
+    renderCatalog();
+    renderBackup();
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  el("viewMode").addEventListener("change", renderShopping);
+
+  renderAll();
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
+</script>
+</body>
+</html>
