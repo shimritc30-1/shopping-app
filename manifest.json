@@ -1,17 +1,22 @@
 {
- "name": "האפליקציה של שימרית - רשימת קניות",
-"short_name": "קל בקניות",
-
+  "name": "קל בקניות",
+  "short_name": "קל בקניות",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f3f4f6",
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAs0lEQVR4nO3aMQ7CMBQF0I7yJ0mYgSxYQmQm4pHqg4bJm0q3kqj0p0b7qv0g8w4h7m7gqQmQAAAAAAAAAAAHh0d6c3p9f1m+7bQk0o3m2i4d1c0v3m9g9x6mC0Wk0c0f4p0e3lV0oQ7lWbqv1xv0c0u9oZp0b7s7m1xk3G8m0r0l0b8dYl1y9m1o8AAAAAAAAAAAB4fQG7q0c3m9n+5wAAAABJRU5ErkJggg==",
+      "src": "./icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
+
 
