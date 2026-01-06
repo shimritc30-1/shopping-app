@@ -521,7 +521,8 @@ function buildShareText() {
       const qty = s.qty || 1;
       const notePart = s.note ? ` (${s.note})` : "";
 
-      items.push(`• ${qty} ${product.name}${notePart}`);
+     items.push(`• \u200E${qty}\u200E ${product.name}${notePart}`);
+
     }
 
     if (items.length) {
@@ -937,4 +938,5 @@ function buildShareText() {
 </script>
 </body>
 </html>
+
 
