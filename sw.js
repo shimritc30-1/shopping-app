@@ -1,7 +1,8 @@
 // sw.js - Service Worker for Shopping App
 // Goal: update smoothly when new versions are deployed (avoid stuck cache)
 
-const CACHE_VERSION = "v4"; // תעלי מספר בכל שינוי גדול
+const CACHE_VERSION = "v5";
+ // תעלי מספר בכל שינוי גדול
 const CACHE_NAME = `shopping-app-${CACHE_VERSION}`;
 
 const ASSETS = [
@@ -80,6 +81,7 @@ self.addEventListener("message", (event) => {
     self.skipWaiting();
   }
 });
+
 
 
 
