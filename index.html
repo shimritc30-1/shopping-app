@@ -239,13 +239,16 @@ const CURRENT_SCHEMA_VERSION = 2;
       name,
       order: idx + 1
     }));
-    return {
-      categories,
-      products: [],
-      oneTimeProducts: [],
-      shopping: {},
-      settings: { listTitle: "קניות לסופר" }
-    };
+return {
+  schemaVersion: CURRENT_SCHEMA_VERSION,
+  categories,
+  products: [],
+  oneTimeProducts: [],
+  shopping: {},
+  history: [],
+  settings: { listTitle: "קניות לסופר" }
+};
+
   }
 
   function loadState() {
@@ -523,9 +526,7 @@ function buildShareText() {
       const qty = s.qty || 1;
       const notePart = s.note ? ` (${s.note})` : "";
 
-items.push(`• \u2067\u2066${qty}\u2069 ${product.name}${notePart}\u2069`);
-
-
+      items.push(`• ${qty} ${product.name}${notePart}`);
     }
 
     if (items.length) {
@@ -537,6 +538,7 @@ items.push(`• \u2067\u2066${qty}\u2069 ${product.name}${notePart}\u2069`);
 
   return lines.join("\n");
 }
+
 
   function openWhatsApp(text) {
     const encoded = encodeURIComponent(text);
@@ -971,6 +973,7 @@ items.push(`• \u2067\u2066${qty}\u2069 ${product.name}${notePart}\u2069`);
 </script>
 </body>
 </html>
+
 
 
 
