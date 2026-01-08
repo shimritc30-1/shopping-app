@@ -163,6 +163,25 @@
       <div class="hint">סדר הקטגוריות קובע את סדר ההצגה ברשימת הקניות. משתמשים במעלה/מטה כדי לשנות סדר.</div>
     </div>
 
+<div class="card">
+  <h3>מחולל קטלוג אוטומטי</h3>
+
+  <div class="hint">
+    העלי קובץ Excel עם רשימת מוצרים (עם או בלי קטגוריות).
+    האפליקציה תנסה לזהות קטגוריות לבד, ותציע לך תיקונים לפני שמירה.
+  </div>
+
+  <div class="row" style="margin-top:10px;">
+    <input type="file" id="catalogExcelFile" accept=".xlsx,.xls" />
+    <button class="primary" id="btnGenerateCatalog">צור קטלוג מהקובץ</button>
+  </div>
+
+  <div class="hint">
+    הקטלוג הקיים לא יימחק – יתבצע מיזוג בלבד.
+  </div>
+</div>
+
+    
     <div class="card">
       <div class="row">
         <div>
@@ -980,6 +999,7 @@ function buildShareText() {
 </script>
 </body>
 </html>
+
 
 
 
