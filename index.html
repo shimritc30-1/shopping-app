@@ -958,6 +958,46 @@ function buildShareText() {
   }
 
   el("viewMode").addEventListener("change", renderShopping);
+// ================================
+// מחולל קטלוג – שלב 1: קריאת Excel (בדיקה)
+// ================================
+const btnGenerate = el("btnGenerateCatalog");
+if (btnGenerate) {
+  btnGenerate.addEventListener("click", async () => {
+    const fileInput = el("catalogExcelFile");
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+      alert("נא לבחור קובץ Excel קודם");
+      return;
+    }
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+
+      console.log("📘 Sheet names:", workbook.SheetNames);
+
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      const rows = XLSX.utils.sheet_to_json(sheet, {
+        header: 1,
+        raw: true
+      });
+
+      console.log("📄 Using sheet:", sheetName);
+      console.log("📊 Rows count:", rows.length);
+      console.log("🧾 Preview (first 30 rows):");
+      console.table(rows.slice(0, 30));
+
+      alert("הקובץ נטען בהצלחה. פתחי Console לראות נתונים.");
+    } catch (err) {
+      console.error("❌ Excel read error:", err);
+      alert("שגיאה בקריאת הקובץ. בדקי Console.");
+    }
+  });
+}
 
   renderAll();
 
@@ -999,6 +1039,7 @@ function buildShareText() {
 </script>
 </body>
 </html>
+
 
 
 
